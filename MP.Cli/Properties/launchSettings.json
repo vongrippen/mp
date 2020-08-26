@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "MP.Cli": {
+      "commandName": "Project",
+      "commandLineArgs": "process file --filename \"C:\\video.m4v\" --content_type tv"
+    }
+  }
+}

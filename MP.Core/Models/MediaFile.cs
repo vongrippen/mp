@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Text;
 
 namespace MP.Core.Models
@@ -16,5 +17,7 @@ namespace MP.Core.Models
         public long Size { get; set; }
         public string ContentType { get; set; }
         public Analysis Analysis { get; set; }
+        [Column(TypeName = "TEXT")]
+        public Dictionary<string,string> FilenameData { get; set; }
     }
 }

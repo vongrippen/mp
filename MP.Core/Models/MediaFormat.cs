@@ -11,7 +11,5 @@ namespace MP.Core.Models
         public Guid Id { get; set; }
         public Guid AnalysisId { get; set; }
         public Analysis Analysis { get; set; }
-        public List<VideoStream> VideoStreams { get; set; }
-        public List<AudioStream> AudioStreams { get; set; }
     }
 }

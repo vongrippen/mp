@@ -26,19 +26,29 @@ namespace MP.Cli
             _context.Database.Migrate();
             Console.WriteLine("Media Processor");
 
-            Analysis analysis = new Analysis(_context);
+            Analysis analysis = new Analysis(_context, _config);
 
             var rootCommand = new RootCommand();
-            var processCommand = new Command("process");
+            var analyzeCommand = new Command("analyze");
 
-            var cmdProcessFile = new Command("file");
-            cmdProcessFile.AddOption(new Option<string>("--filename"));
-            cmdProcessFile.AddOption(new Option<string>("--content_type"));
-            cmdProcessFile.Handler = CommandHandler.Create<string, string>(analysis.ProcessFile);
+            var cmdAnalyzeFile = new Command("file");
+            cmdAnalyzeFile.AddOption(new Option<string>("--filename"));
+            cmdAnalyzeFile.AddOption(new Option<string>("--content_type"));
+            cmdAnalyzeFile.Handler = CommandHandler.Create<string, string>(analysis.AnalyzeFile);
 
-            processCommand.Add(cmdProcessFile);
+            var cmdAnalyzeDir = new Command("dir");
+            cmdAnalyzeDir.AddOption(new Option<string>("--path"));
+            cmdAnalyzeDir.AddOption(new Option<string>("--content_type"));
+            cmdAnalyzeDir.Handler = CommandHandler.Create<string, string>(analysis.AnalyzeDir);
 
-            rootCommand.Add(processCommand);
+            var cmdAnalyzeConfig = new Command("cfg");
+            cmdAnalyzeConfig.Handler = CommandHandler.Create(analysis.AnalyzeCfg);
+
+            analyzeCommand.Add(cmdAnalyzeFile);
+            analyzeCommand.Add(cmdAnalyzeDir);
+            analyzeCommand.Add(cmdAnalyzeConfig);
+
+            rootCommand.Add(analyzeCommand);
 
             rootCommand.InvokeAsync(args).Wait();
         }

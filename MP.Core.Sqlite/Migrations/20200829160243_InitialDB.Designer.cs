@@ -3,14 +3,16 @@ using System;
 using MP.Core.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace MP.Core.Sqlite.Migrations
 {
     [DbContext(typeof(MPContext))]
-    partial class MPContextModelSnapshot : ModelSnapshot
+    [Migration("20200829160243_InitialDB")]
+    partial class InitialDB
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

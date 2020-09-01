@@ -1,7 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using MP.Core.Models;
+using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 using System.Linq.Expressions;
 
 namespace MP.Core.Context
@@ -25,6 +27,18 @@ namespace MP.Core.Context
                 .HasConversion(
                     v => $"{v.Width},{v.Height}",
                     v => parseDimensions(v)
+                );
+            modelBuilder.Entity<VideoStream>()
+                .Property(e => e.Profile)
+                .IsRequired(false);
+            modelBuilder.Entity<AudioStream>()
+                .Property(e => e.Profile)
+                .IsRequired(false);
+            modelBuilder.Entity<MediaFile>()
+                .Property(e => e.FilenameData)
+                .HasConversion(
+                    v => JsonConvert.SerializeObject(v, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }),
+                    v => JsonConvert.DeserializeObject<Dictionary<string, string>>(v, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore })
                 );
         }
 

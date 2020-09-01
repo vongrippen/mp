@@ -1,12 +1,20 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>net5.0</TargetFramework>
   </PropertyGroup>
 
   <ItemGroup>
     <Compile Remove="Migrations\20200825203226_InitialCreate.cs" />
     <Compile Remove="Migrations\20200825203226_InitialCreate.Designer.cs" />
+    <Compile Remove="Migrations\20200825222404_InitialCreate.cs" />
+    <Compile Remove="Migrations\20200825222404_InitialCreate.Designer.cs" />
+    <Compile Remove="Migrations\20200826181522_RemoveExtraColumns.cs" />
+    <Compile Remove="Migrations\20200826181522_RemoveExtraColumns.Designer.cs" />
+    <Compile Remove="Migrations\20200826181842_InitialDB.cs" />
+    <Compile Remove="Migrations\20200826181842_InitialDB.Designer.cs" />
+    <Compile Remove="Migrations\20200829160012_AddedFilenameData.cs" />
+    <Compile Remove="Migrations\20200829160012_AddedFilenameData.Designer.cs" />
   </ItemGroup>
 
   <ItemGroup>

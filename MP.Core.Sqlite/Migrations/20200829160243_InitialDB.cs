@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace MP.Core.Sqlite.Migrations
 {
-    public partial class InitialCreate : Migration
+    public partial class InitialDB : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -16,7 +16,8 @@ namespace MP.Core.Sqlite.Migrations
                     FileExt = table.Column<string>(nullable: true),
                     FilePath = table.Column<string>(maxLength: 1000, nullable: true),
                     Size = table.Column<long>(nullable: false),
-                    ContentType = table.Column<string>(nullable: true)
+                    ContentType = table.Column<string>(nullable: true),
+                    FilenameData = table.Column<string>(type: "TEXT", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -37,6 +38,34 @@ namespace MP.Core.Sqlite.Migrations
                         name: "FK_Analyses_MediaFiles_FileId",
                         column: x => x.FileId,
                         principalTable: "MediaFiles",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "AudioStreams",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(nullable: false),
+                    Index = table.Column<int>(nullable: false),
+                    CodecName = table.Column<string>(nullable: false),
+                    CodecLongName = table.Column<string>(nullable: false),
+                    BitRate = table.Column<int>(nullable: false),
+                    Duration = table.Column<TimeSpan>(nullable: false),
+                    Language = table.Column<string>(nullable: true),
+                    Channels = table.Column<int>(nullable: false),
+                    ChannelLayout = table.Column<string>(nullable: false),
+                    SampleRateHz = table.Column<int>(nullable: false),
+                    Profile = table.Column<string>(nullable: true),
+                    AnalysisId = table.Column<Guid>(nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_AudioStreams", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_AudioStreams_Analyses_AnalysisId",
+                        column: x => x.AnalysisId,
+                        principalTable: "Analyses",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -66,41 +95,6 @@ namespace MP.Core.Sqlite.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "AudioStreams",
-                columns: table => new
-                {
-                    Id = table.Column<Guid>(nullable: false),
-                    Index = table.Column<int>(nullable: false),
-                    CodecName = table.Column<string>(nullable: false),
-                    CodecLongName = table.Column<string>(nullable: false),
-                    BitRate = table.Column<int>(nullable: false),
-                    Duration = table.Column<TimeSpan>(nullable: false),
-                    Language = table.Column<string>(nullable: true),
-                    Channels = table.Column<int>(nullable: false),
-                    ChannelLayout = table.Column<string>(nullable: false),
-                    SampleRateHz = table.Column<int>(nullable: false),
-                    Profile = table.Column<string>(nullable: false),
-                    AnalysisId = table.Column<Guid>(nullable: false),
-                    MediaFormatId = table.Column<Guid>(nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_AudioStreams", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_AudioStreams_Analyses_AnalysisId",
-                        column: x => x.AnalysisId,
-                        principalTable: "Analyses",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_AudioStreams_MediaFormats_MediaFormatId",
-                        column: x => x.MediaFormatId,
-                        principalTable: "MediaFormats",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
-                });
-
-            migrationBuilder.CreateTable(
                 name: "VideoStreams",
                 columns: table => new
                 {
@@ -114,14 +108,13 @@ namespace MP.Core.Sqlite.Migrations
                     AvgFrameRate = table.Column<double>(nullable: false),
                     BitsPerRawSample = table.Column<int>(nullable: false),
                     DisplayAspectRatio = table.Column<string>(nullable: false),
-                    Profile = table.Column<string>(nullable: false),
+                    Profile = table.Column<string>(nullable: true),
                     Width = table.Column<int>(nullable: false),
                     Height = table.Column<int>(nullable: false),
                     FrameRate = table.Column<double>(nullable: false),
                     PixelFormat = table.Column<string>(nullable: false),
                     Rotation = table.Column<int>(nullable: false),
-                    AnalysisId = table.Column<Guid>(nullable: false),
-                    MediaFormatId = table.Column<Guid>(nullable: true)
+                    AnalysisId = table.Column<Guid>(nullable: false)
                 },
                 constraints: table =>
                 {
@@ -132,12 +125,6 @@ namespace MP.Core.Sqlite.Migrations
                         principalTable: "Analyses",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_VideoStreams_MediaFormats_MediaFormatId",
-                        column: x => x.MediaFormatId,
-                        principalTable: "MediaFormats",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateIndex(
@@ -152,11 +139,6 @@ namespace MP.Core.Sqlite.Migrations
                 column: "AnalysisId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_AudioStreams_MediaFormatId",
-                table: "AudioStreams",
-                column: "MediaFormatId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_MediaFormats_AnalysisId",
                 table: "MediaFormats",
                 column: "AnalysisId",
@@ -166,11 +148,6 @@ namespace MP.Core.Sqlite.Migrations
                 name: "IX_VideoStreams_AnalysisId",
                 table: "VideoStreams",
                 column: "AnalysisId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_VideoStreams_MediaFormatId",
-                table: "VideoStreams",
-                column: "MediaFormatId");
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
@@ -179,10 +156,10 @@ namespace MP.Core.Sqlite.Migrations
                 name: "AudioStreams");
 
             migrationBuilder.DropTable(
-                name: "VideoStreams");
+                name: "MediaFormats");
 
             migrationBuilder.DropTable(
-                name: "MediaFormats");
+                name: "VideoStreams");
 
             migrationBuilder.DropTable(
                 name: "Analyses");

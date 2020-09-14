@@ -10,6 +10,7 @@ using MP.Core.Context;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Configuration;
+using System.Text.RegularExpressions;
 
 namespace MP.Core
 {
@@ -54,6 +55,7 @@ namespace MP.Core
         public void AnalyzeFile(string filename, string content_type)
         {
             var fileInfo = new FileInfo(filename);
+            var filenameRegexString = config[$"MP:FilenameRegex:{content_type}"];
             try
             {
                 var ffprobe = FFProbe.Analyse(fileInfo.FullName);
@@ -86,11 +88,41 @@ namespace MP.Core
                 mediaFile.FilePath = fileInfo.DirectoryName;
                 mediaFile.Size = fileInfo.Length;
                 mediaFile.ContentType = content_type;
+                mediaFile.FilenameData = GetFilenameData(fileInfo.Name, content_type);
 
 
                 context.MediaFiles.Add(mediaFile);
                 context.SaveChanges();
             } catch (System.NullReferenceException) { }
+        }
+
+        private Dictionary<string, string> GetFilenameData(string filename, string content_type)
+        {
+            Dictionary<string, string> data = new Dictionary<string, string>();
+            var filenameRegexString = config[$"MP:FilenameRegex:{content_type}"];
+            if (String.IsNullOrEmpty(filenameRegexString))
+            {
+                return data;
+            }
+            try
+            {
+                Regex filenameRegex = new Regex(filenameRegexString);
+                var matches = filenameRegex.Matches(filename);
+                foreach (Match match in matches)
+                {
+                    var groups = match.Groups;
+                    foreach (Group group in groups)
+                    {
+                        data[group.Name] = group.Value;
+                    }
+                }
+            }
+            catch (ArgumentException)
+            {
+                Console.Error.WriteLine($"Invalid FilenameRegex for '{content_type}; -- '{filenameRegexString}'");
+            }
+
+            return data;
         }
     }
 }

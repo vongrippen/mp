@@ -3,6 +3,10 @@
     "MP.Cli": {
       "commandName": "Project",
       "commandLineArgs": "analyze cfg"
+    },
+    "Docker": {
+      "commandName": "Docker",
+      "commandLineArgs": "analyze cfg"
     }
   }
 }

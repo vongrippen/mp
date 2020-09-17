@@ -34,6 +34,9 @@ namespace MP.Core.Context
             modelBuilder.Entity<AudioStream>()
                 .Property(e => e.Profile)
                 .IsRequired(false);
+            modelBuilder.Entity<AudioStream>()
+                .Property(e => e.ChannelLayout)
+                .IsRequired(false);
             modelBuilder.Entity<MediaFile>()
                 .Property(e => e.FilenameData)
                 .HasConversion(

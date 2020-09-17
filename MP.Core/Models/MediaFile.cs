@@ -19,5 +19,8 @@ namespace MP.Core.Models
         public Analysis Analysis { get; set; }
         [Column(TypeName = "TEXT")]
         public Dictionary<string,string> FilenameData { get; set; }
+        public long BytesPerSecond { get; set; }
+        public DateTime LastProcessingUpdate { get; set; }
+        public string ProcessedFormat { get; set; }
     }
 }

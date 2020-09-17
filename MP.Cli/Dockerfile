@@ -1,6 +1,7 @@
 #See https://aka.ms/containerfastmode to understand how Visual Studio uses this Dockerfile to build your images for faster debugging.
 
 FROM mcr.microsoft.com/dotnet/runtime:5.0-buster-slim AS base
+RUN apt-get update && apt-get install -y ffmpeg libgdiplus && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
 
 FROM mcr.microsoft.com/dotnet/sdk:5.0-buster-slim AS build
@@ -21,6 +22,5 @@ RUN dotnet publish "MP.Cli.csproj" -c Release -o /app/publish
 FROM base AS final
 WORKDIR /app
 RUN mkdir -p /zmedia/plex
-RUN apt-get update && apt-get install -y ffmpeg libgdiplus && rm -rf /var/lib/apt/lists/*
 COPY --from=publish /app/publish .
 ENTRYPOINT ["dotnet", "MP.Cli.dll"]

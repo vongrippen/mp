@@ -89,6 +89,7 @@ namespace MP.Core
                 mediaFile.Size = fileInfo.Length;
                 mediaFile.ContentType = content_type;
                 mediaFile.FilenameData = GetFilenameData(fileInfo.Name, content_type);
+                mediaFile.BytesPerSecond = (long)(mediaFile.Size / analysis.PrimaryVideoStream.Duration.TotalSeconds);
 
 
                 context.MediaFiles.Add(mediaFile);

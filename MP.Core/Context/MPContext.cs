@@ -40,6 +40,10 @@ namespace MP.Core.Context
                     v => JsonConvert.SerializeObject(v, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore }),
                     v => JsonConvert.DeserializeObject<Dictionary<string, string>>(v, new JsonSerializerSettings { NullValueHandling = NullValueHandling.Ignore })
                 );
+            modelBuilder.Entity<MediaFile>()
+                .HasIndex(b => b.BytesPerSecond);
+            modelBuilder.Entity<MediaFile>()
+                .HasIndex(b => b.LastProcessingUpdate);
         }
 
         private (int Width, int Height) parseDimensions(string v)

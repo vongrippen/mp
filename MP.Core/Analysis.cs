@@ -90,6 +90,10 @@ namespace MP.Core
                 mediaFile.ContentType = content_type;
                 mediaFile.FilenameData = GetFilenameData(fileInfo.Name, content_type);
                 mediaFile.BytesPerSecond = (long)(mediaFile.Size / analysis.PrimaryVideoStream.Duration.TotalSeconds);
+                if (mediaFile.BytesPerSecond < 0)
+                {
+                    mediaFile.BytesPerSecond = 0;
+                }
 
 
                 context.MediaFiles.Add(mediaFile);

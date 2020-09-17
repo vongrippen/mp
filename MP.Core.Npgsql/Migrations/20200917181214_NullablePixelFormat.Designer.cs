@@ -3,15 +3,17 @@ using System;
 using MP.Core.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace MP.Core.Npgsql.Migrations
 {
     [DbContext(typeof(MPContext))]
-    partial class MPContextModelSnapshot : ModelSnapshot
+    [Migration("20200917181214_NullablePixelFormat")]
+    partial class NullablePixelFormat
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

@@ -31,6 +31,9 @@ namespace MP.Core.Context
             modelBuilder.Entity<VideoStream>()
                 .Property(e => e.Profile)
                 .IsRequired(false);
+            modelBuilder.Entity<VideoStream>()
+                .Property(e => e.PixelFormat)
+                .IsRequired(false);
             modelBuilder.Entity<AudioStream>()
                 .Property(e => e.Profile)
                 .IsRequired(false);

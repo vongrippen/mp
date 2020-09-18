@@ -1,0 +1,8 @@
+version: '3.4'
+
+services:
+  mp.cli:
+    image: ${DOCKER_REGISTRY-}mp
+    build:
+      context: .
+      dockerfile: MP.Cli/Dockerfile

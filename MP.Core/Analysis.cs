@@ -11,14 +11,10 @@ using AutoMapper;
 using Microsoft.EntityFrameworkCore.Storage;
 using Microsoft.Extensions.Configuration;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 
 namespace MP.Core
 {
-    class DirConfig
-    {
-        string path { get; set; }
-        string content_type { get; set; }
-    }
     public class Analysis
     {
         private MPContext context;
@@ -28,31 +24,31 @@ namespace MP.Core
             context = ctx;
             config = cfg;
         }
-        public void AnalyzeCfg()
+        public async Task AnalyzeCfg()
         {
             var dirCfg = config.GetSection("MP:Directories").GetChildren();
             foreach (IConfigurationSection dir in dirCfg)
             {
-                AnalyzeDir(dir["path"], dir["content_type"]);
+                await AnalyzeDir(dir["path"], dir["content_type"]);
             }
         }
-        public void AnalyzeDir(string path, string content_type)
+        public async Task AnalyzeDir(string path, string content_type)
         {
             var dir = new DirectoryInfo(path);
 
             var files = dir.EnumerateFiles();
             foreach (var f in files)
             {
-                AnalyzeFile(f.FullName, content_type);
+                await AnalyzeFile(f.FullName, content_type);
             }
 
             var subdirs = dir.EnumerateDirectories();
             foreach (var d in subdirs)
             {
-                AnalyzeDir(d.FullName, content_type);
+                await AnalyzeDir(d.FullName, content_type);
             }
         }
-        public void AnalyzeFile(string filename, string content_type)
+        public async Task AnalyzeFile(string filename, string content_type)
         {
             var fileInfo = new FileInfo(filename);
             var filenameRegexString = config[$"MP:FilenameRegex:{content_type}"];
@@ -73,7 +69,7 @@ namespace MP.Core
                     .Where(s => s.FilePath == fileInfo.DirectoryName)
                     .ToList();
                 context.RemoveRange(oldAnalysis);
-                context.SaveChanges();
+                await context.SaveChangesAsync();
 
                 MP.Core.Models.Analysis analysis = new MP.Core.Models.Analysis();
                 analysis.AudioStreams = mapper.Map<List<Models.AudioStream>>(ffprobe.AudioStreams);
@@ -97,7 +93,7 @@ namespace MP.Core
 
 
                 context.MediaFiles.Add(mediaFile);
-                context.SaveChanges();
+                await context.SaveChangesAsync();
             } catch (System.NullReferenceException) { }
         }
 

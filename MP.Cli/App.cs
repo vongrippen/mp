@@ -27,6 +27,7 @@ namespace MP.Cli
             Console.WriteLine("Media Processor");
 
             Analysis analysis = new Analysis(_context, _config);
+            Cleanup cleanup = new Cleanup(_context);
 
             var rootCommand = new RootCommand();
             var analyzeCommand = new Command("analyze");
@@ -41,14 +42,20 @@ namespace MP.Cli
             cmdAnalyzeDir.AddOption(new Option<string>("--content_type"));
             cmdAnalyzeDir.Handler = CommandHandler.Create<string, string>(analysis.AnalyzeDir);
 
-            var cmdAnalyzeConfig = new Command("cfg");
-            cmdAnalyzeConfig.Handler = CommandHandler.Create(analysis.AnalyzeCfg);
+            var cmdConfig = new Command("cfg");
+            var cmdConfigAnalyze = new Command("analyze");
+            cmdConfigAnalyze.Handler = CommandHandler.Create(analysis.AnalyzeCfg);
+            var cmdConfigCleanup = new Command("cleanup");
+            cmdConfigCleanup.Handler = CommandHandler.Create(cleanup.CleanupDB);
 
             analyzeCommand.Add(cmdAnalyzeFile);
             analyzeCommand.Add(cmdAnalyzeDir);
-            analyzeCommand.Add(cmdAnalyzeConfig);
+
+            cmdConfig.Add(cmdConfigAnalyze);
+            cmdConfig.Add(cmdConfigCleanup);
 
             rootCommand.Add(analyzeCommand);
+            rootCommand.Add(cmdConfig);
 
             rootCommand.InvokeAsync(args).Wait();
         }

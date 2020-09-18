@@ -68,32 +68,35 @@ namespace MP.Core
                     .Where(s => s.FileName == fileInfo.Name)
                     .Where(s => s.FilePath == fileInfo.DirectoryName)
                     .ToList();
-                context.RemoveRange(oldAnalysis);
-                await context.SaveChangesAsync();
-
-                MP.Core.Models.Analysis analysis = new MP.Core.Models.Analysis();
-                analysis.AudioStreams = mapper.Map<List<Models.AudioStream>>(ffprobe.AudioStreams);
-                analysis.VideoStreams = mapper.Map<List<Models.VideoStream>>(ffprobe.VideoStreams);
-                analysis.Format = mapper.Map<Models.MediaFormat>(ffprobe.Format);
-
-                MP.Core.Models.MediaFile mediaFile = new MP.Core.Models.MediaFile();
-
-                mediaFile.Analysis = analysis;
-                mediaFile.FileName = fileInfo.Name;
-                mediaFile.FileExt = fileInfo.Extension;
-                mediaFile.FilePath = fileInfo.DirectoryName;
-                mediaFile.Size = fileInfo.Length;
-                mediaFile.ContentType = content_type;
-                mediaFile.FilenameData = GetFilenameData(fileInfo.Name, content_type);
-                mediaFile.BytesPerSecond = (long)(mediaFile.Size / analysis.PrimaryVideoStream.Duration.TotalSeconds);
-                if (mediaFile.BytesPerSecond < 0)
+                if (oldAnalysis.FirstOrDefault().Size != fileInfo.Length)
                 {
-                    mediaFile.BytesPerSecond = 0;
+                    context.RemoveRange(oldAnalysis);
+                    await context.SaveChangesAsync();
+
+                    MP.Core.Models.Analysis analysis = new MP.Core.Models.Analysis();
+                    analysis.AudioStreams = mapper.Map<List<Models.AudioStream>>(ffprobe.AudioStreams);
+                    analysis.VideoStreams = mapper.Map<List<Models.VideoStream>>(ffprobe.VideoStreams);
+                    analysis.Format = mapper.Map<Models.MediaFormat>(ffprobe.Format);
+
+                    MP.Core.Models.MediaFile mediaFile = new MP.Core.Models.MediaFile();
+
+                    mediaFile.Analysis = analysis;
+                    mediaFile.FileName = fileInfo.Name;
+                    mediaFile.FileExt = fileInfo.Extension;
+                    mediaFile.FilePath = fileInfo.DirectoryName;
+                    mediaFile.Size = fileInfo.Length;
+                    mediaFile.ContentType = content_type;
+                    mediaFile.FilenameData = GetFilenameData(fileInfo.Name, content_type);
+                    mediaFile.BytesPerSecond = (long)(mediaFile.Size / analysis.PrimaryVideoStream.Duration.TotalSeconds);
+                    if (mediaFile.BytesPerSecond < 0)
+                    {
+                        mediaFile.BytesPerSecond = 0;
+                    }
+
+
+                    context.MediaFiles.Add(mediaFile);
+                    await context.SaveChangesAsync();
                 }
-
-
-                context.MediaFiles.Add(mediaFile);
-                await context.SaveChangesAsync();
             } catch (System.NullReferenceException) { }
         }
 

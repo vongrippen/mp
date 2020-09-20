@@ -68,7 +68,12 @@ namespace MP.Core
                     .Where(s => s.FileName == fileInfo.Name)
                     .Where(s => s.FilePath == fileInfo.DirectoryName)
                     .ToList();
-                if (oldAnalysis.FirstOrDefault().Size != fileInfo.Length)
+                long oldSize = 0;
+                if (oldAnalysis.FirstOrDefault() != null)
+                {
+                    oldSize = oldAnalysis.FirstOrDefault().Size;
+                }
+                if (oldSize != fileInfo.Length)
                 {
                     context.RemoveRange(oldAnalysis);
                     await context.SaveChangesAsync();
@@ -96,6 +101,7 @@ namespace MP.Core
 
                     context.MediaFiles.Add(mediaFile);
                     await context.SaveChangesAsync();
+                    Console.Out.WriteLine(mediaFile.ToString());
                 }
             } catch (System.NullReferenceException) { }
         }

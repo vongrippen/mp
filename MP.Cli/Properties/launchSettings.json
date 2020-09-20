@@ -6,7 +6,7 @@
     },
     "Docker": {
       "commandName": "Docker",
-      "commandLineArgs": "analyze cfg"
+      "commandLineArgs": "cfg analyze"
     }
   }
 }

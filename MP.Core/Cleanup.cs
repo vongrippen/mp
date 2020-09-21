@@ -18,6 +18,7 @@ namespace MP.Core
         }
         public async Task CleanupDB()
         {
+            Console.Out.WriteLine("--== Starting Cleanup ==--");
             var files = context.MediaFiles.ToList();
             foreach (var file in files)
             {
@@ -28,6 +29,7 @@ namespace MP.Core
                 }
             }
             await context.SaveChangesAsync();
+            Console.Out.WriteLine("--== Finished Cleanup ==--");
         }
     }
 }

@@ -52,6 +52,15 @@ namespace MP.Core
         {
             var fileInfo = new FileInfo(filename);
             var filenameRegexString = config[$"MP:FilenameRegex:{content_type}"];
+            List<String> ignoreRegex = config.GetSection("MP:Ignore").Get<List<String>>();
+            foreach (String regString in ignoreRegex)
+            {
+                Regex reg = new Regex(regString);
+                if (reg.IsMatch(filename))
+                {
+                    return;
+                }
+            }
             try
             {
                 var ffprobe = FFProbe.Analyse(fileInfo.FullName);

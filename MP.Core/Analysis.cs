@@ -115,6 +115,7 @@ namespace MP.Core
             }
             catch (System.NullReferenceException) { }
             catch (System.InvalidOperationException) { }
+            catch (System.DivideByZeroException) { }
         }
 
         private Dictionary<string, string> GetFilenameData(string filename, string content_type)

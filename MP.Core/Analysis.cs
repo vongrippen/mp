@@ -103,7 +103,9 @@ namespace MP.Core
                     await context.SaveChangesAsync();
                     Console.Out.WriteLine(mediaFile.ToString());
                 }
-            } catch (System.NullReferenceException) { }
+            }
+            catch (System.NullReferenceException) { }
+            catch (System.InvalidOperationException) { }
         }
 
         private Dictionary<string, string> GetFilenameData(string filename, string content_type)

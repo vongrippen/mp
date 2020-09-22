@@ -122,7 +122,7 @@ namespace MP.Core
         {
             FileWithErrors f = new FileWithErrors();
             f.FilePath = filepath;
-            f.Notes = e.Message;
+            f.Notes = e.ToString() + "\n\n" + e.Message + "\n\n" + e.StackTrace;
             context.FilesWithErrors.Add(f);
             await context.SaveChangesAsync();
         }

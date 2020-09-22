@@ -13,7 +13,7 @@ namespace MP.Core.Models
         public Guid FileId { get; set; }
         public MediaFile File { get; set; }
         public AudioStream PrimaryAudioStream { get => AudioStreams.First(); }
-        public VideoStream PrimaryVideoStream { get => VideoStreams.First(); }
+        public VideoStream PrimaryVideoStream { get => VideoStreams.Where(v => v.Duration.TotalSeconds > 0).First(); }
         public MediaFormat Format { get; set; }
         public List<VideoStream> VideoStreams { get; set; }
         public List<AudioStream> AudioStreams { get; set; }

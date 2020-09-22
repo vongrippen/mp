@@ -113,9 +113,18 @@ namespace MP.Core
                     Console.Out.WriteLine(mediaFile.ToString());
                 }
             }
-            catch (System.NullReferenceException) { }
-            catch (System.InvalidOperationException) { }
-            catch (System.DivideByZeroException) { }
+            catch (System.NullReferenceException e) { await LogFileWithError(e, filename); }
+            catch (System.InvalidOperationException e) { await LogFileWithError(e, filename); }
+            catch (System.DivideByZeroException e) { await LogFileWithError(e, filename); }
+        }
+
+        private async Task LogFileWithError(Exception e, String filepath)
+        {
+            FileWithErrors f = new FileWithErrors();
+            f.FilePath = filepath;
+            f.Notes = e.Message;
+            context.FilesWithErrors.Add(f);
+            await context.SaveChangesAsync();
         }
 
         private Dictionary<string, string> GetFilenameData(string filename, string content_type)

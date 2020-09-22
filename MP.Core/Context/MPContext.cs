@@ -19,6 +19,7 @@ namespace MP.Core.Context
         public DbSet<MediaFormat> MediaFormats { get; set; }
         public DbSet<VideoStream> VideoStreams { get; set; }
         public DbSet<AudioStream> AudioStreams { get; set; }
+        public DbSet<FileWithErrors> FilesWithErrors { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

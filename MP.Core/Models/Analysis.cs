@@ -13,7 +13,18 @@ namespace MP.Core.Models
         public Guid FileId { get; set; }
         public MediaFile File { get; set; }
         public AudioStream PrimaryAudioStream { get => AudioStreams.First(); }
-        public VideoStream PrimaryVideoStream { get => VideoStreams.Where(v => v.Duration > TimeSpan.Zero).First(); }
+        public VideoStream PrimaryVideoStream { get {
+                VideoStream primary = new VideoStream();
+                foreach (VideoStream vs in VideoStreams)
+                {
+                    if (vs.Duration != TimeSpan.Zero)
+                    {
+                        primary = vs;
+                    }
+                }
+
+                return primary;
+        } }
         public MediaFormat Format { get; set; }
         public List<VideoStream> VideoStreams { get; set; }
         public List<AudioStream> AudioStreams { get; set; }

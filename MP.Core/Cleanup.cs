@@ -28,6 +28,15 @@ namespace MP.Core
                     context.RemoveRange(file);
                 }
             }
+            var filesWError = context.FilesWithErrors.ToList();
+            foreach (var file in filesWError)
+            {
+                var exists = File.Exists(file.FilePath);
+                if (!exists)
+                {
+                    context.RemoveRange(file);
+                }
+            }
             await context.SaveChangesAsync();
             Console.Out.WriteLine("--== Finished Cleanup ==--");
         }

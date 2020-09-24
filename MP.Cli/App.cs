@@ -35,12 +35,12 @@ namespace MP.Cli
             var cmdAnalyzeFile = new Command("file");
             cmdAnalyzeFile.AddOption(new Option<string>("--filename"));
             cmdAnalyzeFile.AddOption(new Option<string>("--content_type"));
-            cmdAnalyzeFile.Handler = CommandHandler.Create<string, string>(analysis.AnalyzeFile);
+            cmdAnalyzeFile.Handler = CommandHandler.Create<string, string>(analysis.ProcessFile);
 
             var cmdAnalyzeDir = new Command("dir");
             cmdAnalyzeDir.AddOption(new Option<string>("--path"));
             cmdAnalyzeDir.AddOption(new Option<string>("--content_type"));
-            cmdAnalyzeDir.Handler = CommandHandler.Create<string, string>(analysis.AnalyzeDir);
+            cmdAnalyzeDir.Handler = CommandHandler.Create<string, string>(analysis.ProcessDir);
 
             var cmdConfig = new Command("cfg");
             var cmdConfigAnalyze = new Command("analyze");

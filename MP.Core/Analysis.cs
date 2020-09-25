@@ -86,6 +86,7 @@ namespace MP.Core
             catch (System.NullReferenceException e) { await LogFileWithError(e, filename); }
             catch (System.InvalidOperationException e) { await LogFileWithError(e, filename); }
             catch (System.DivideByZeroException e) { await LogFileWithError(e, filename); }
+            catch (Microsoft.EntityFrameworkCore.DbUpdateException e) { await LogFileWithError(e, filename); }
         }
 
         public MediaFile AnalyzeFile(string content_type, FileInfo fileInfo)

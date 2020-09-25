@@ -118,6 +118,27 @@ namespace MP.Core
             {
                 mediaFile.BytesPerSecond = 0;
             }
+            long pixelsPerFrame = 0;
+            int maxWidth = 0;
+            MP.Core.Models.VideoStream primaryVideoStream = null;
+            foreach (MP.Core.Models.VideoStream v in analysis.VideoStreams)
+            {
+                if (v.Width > maxWidth)
+                {
+                    maxWidth = v.Width;
+                    primaryVideoStream = v;
+                }
+            }
+            if (primaryVideoStream != null)
+            {
+                pixelsPerFrame = primaryVideoStream.Width * primaryVideoStream.Height;
+            }
+
+            mediaFile.BytesPerSecondPerPixel = 0;
+            if (pixelsPerFrame > 0)
+            {
+                mediaFile.BytesPerSecondPerPixel = mediaFile.BytesPerSecond / pixelsPerFrame;
+            }
 
             return mediaFile;
         }

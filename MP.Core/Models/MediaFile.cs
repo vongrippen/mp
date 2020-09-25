@@ -22,5 +22,6 @@ namespace MP.Core.Models
         public long BytesPerSecond { get; set; }
         public DateTime LastProcessingUpdate { get; set; }
         public string ProcessedFormat { get; set; }
+        public long BytesPerSecondPerPixel { get; set; }
     }
 }

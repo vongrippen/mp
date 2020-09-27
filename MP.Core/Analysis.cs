@@ -138,7 +138,7 @@ namespace MP.Core
             mediaFile.BytesPerSecondPerPixel = 0;
             if (pixelsPerFrame > 0)
             {
-                mediaFile.BytesPerSecondPerPixel = mediaFile.BytesPerSecond / pixelsPerFrame;
+                mediaFile.BytesPerSecondPerPixel = (double)mediaFile.BytesPerSecond / (double)pixelsPerFrame;
             }
 
             return mediaFile;

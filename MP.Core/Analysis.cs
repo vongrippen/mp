@@ -91,57 +91,65 @@ namespace MP.Core
 
         public MediaFile AnalyzeFile(string content_type, FileInfo fileInfo)
         {
-            var ffprobe = FFProbe.Analyse(fileInfo.FullName);
-
-            var mapper = new MapperConfiguration(cfg =>
+            try
             {
-                cfg.CreateMap<FFMpegCore.AudioStream, Models.AudioStream>();
-                cfg.CreateMap<FFMpegCore.VideoStream, Models.VideoStream>();
-                cfg.CreateMap<FFMpegCore.MediaFormat, Models.MediaFormat>();
-            }).CreateMapper();
+                var ffprobe = FFProbe.Analyse(fileInfo.FullName);
 
-            MP.Core.Models.Analysis analysis = new MP.Core.Models.Analysis();
-            analysis.AudioStreams = mapper.Map<List<Models.AudioStream>>(ffprobe.AudioStreams);
-            analysis.VideoStreams = mapper.Map<List<Models.VideoStream>>(ffprobe.VideoStreams);
-            analysis.Format = mapper.Map<Models.MediaFormat>(ffprobe.Format);
-
-            MP.Core.Models.MediaFile mediaFile = new MP.Core.Models.MediaFile();
-
-            mediaFile.Analysis = analysis;
-            mediaFile.FileName = fileInfo.Name;
-            mediaFile.FileExt = fileInfo.Extension;
-            mediaFile.FilePath = fileInfo.DirectoryName;
-            mediaFile.Size = fileInfo.Length;
-            mediaFile.ContentType = content_type;
-            mediaFile.FilenameData = GetFilenameData(fileInfo.Name, content_type);
-            mediaFile.BytesPerSecond = mediaFile.Size / (long)(analysis.Format.Duration.TotalSeconds);
-            if (mediaFile.BytesPerSecond < 0)
-            {
-                mediaFile.BytesPerSecond = 0;
-            }
-            long pixelsPerFrame = 0;
-            int maxWidth = 0;
-            MP.Core.Models.VideoStream primaryVideoStream = null;
-            foreach (MP.Core.Models.VideoStream v in analysis.VideoStreams)
-            {
-                if (v.Width > maxWidth)
+                var mapper = new MapperConfiguration(cfg =>
                 {
-                    maxWidth = v.Width;
-                    primaryVideoStream = v;
+                    cfg.CreateMap<FFMpegCore.AudioStream, Models.AudioStream>();
+                    cfg.CreateMap<FFMpegCore.VideoStream, Models.VideoStream>();
+                    cfg.CreateMap<FFMpegCore.MediaFormat, Models.MediaFormat>();
+                }).CreateMapper();
+
+                MP.Core.Models.Analysis analysis = new MP.Core.Models.Analysis();
+                analysis.AudioStreams = mapper.Map<List<Models.AudioStream>>(ffprobe.AudioStreams);
+                analysis.VideoStreams = mapper.Map<List<Models.VideoStream>>(ffprobe.VideoStreams);
+                analysis.Format = mapper.Map<Models.MediaFormat>(ffprobe.Format);
+
+                MP.Core.Models.MediaFile mediaFile = new MP.Core.Models.MediaFile();
+
+                mediaFile.Analysis = analysis;
+                mediaFile.FileName = fileInfo.Name;
+                mediaFile.FileExt = fileInfo.Extension;
+                mediaFile.FilePath = fileInfo.DirectoryName;
+                mediaFile.Size = fileInfo.Length;
+                mediaFile.ContentType = content_type;
+                mediaFile.FilenameData = GetFilenameData(fileInfo.Name, content_type);
+                mediaFile.BytesPerSecond = mediaFile.Size / (long)(analysis.Format.Duration.TotalSeconds);
+                if (mediaFile.BytesPerSecond < 0)
+                {
+                    mediaFile.BytesPerSecond = 0;
                 }
-            }
-            if (primaryVideoStream != null)
-            {
-                pixelsPerFrame = primaryVideoStream.Width * primaryVideoStream.Height;
-            }
+                long pixelsPerFrame = 0;
+                int maxWidth = 0;
+                MP.Core.Models.VideoStream primaryVideoStream = null;
+                foreach (MP.Core.Models.VideoStream v in analysis.VideoStreams)
+                {
+                    if (v.Width > maxWidth)
+                    {
+                        maxWidth = v.Width;
+                        primaryVideoStream = v;
+                    }
+                }
+                if (primaryVideoStream != null)
+                {
+                    pixelsPerFrame = primaryVideoStream.Width * primaryVideoStream.Height;
+                }
 
-            mediaFile.BytesPerSecondPerPixel = 0;
-            if (pixelsPerFrame > 0)
-            {
-                mediaFile.BytesPerSecondPerPixel = (double)mediaFile.BytesPerSecond / (double)pixelsPerFrame;
-            }
+                mediaFile.BytesPerSecondPerPixel = 0;
+                if (pixelsPerFrame > 0)
+                {
+                    mediaFile.BytesPerSecondPerPixel = (double)mediaFile.BytesPerSecond / (double)pixelsPerFrame;
+                }
 
-            return mediaFile;
+                return mediaFile;
+            }
+            catch (System.NullReferenceException e) { LogFileWithError(e, fileInfo.FullName); }
+            catch (System.InvalidOperationException e) { LogFileWithError(e, fileInfo.FullName); }
+            catch (System.DivideByZeroException e) { LogFileWithError(e, fileInfo.FullName); }
+            catch (Microsoft.EntityFrameworkCore.DbUpdateException e) { LogFileWithError(e, fileInfo.FullName); }
+            return null;
         }
 
         private async Task LogFileWithError(Exception e, String filepath)

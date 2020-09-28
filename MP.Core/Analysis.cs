@@ -157,8 +157,9 @@ namespace MP.Core
 
         private async Task LogFileWithError(Exception e, String filepath)
         {
-            FileWithErrors f = context.FilesWithErrors.Where(fwe => fwe.FilePath == filepath).FirstOrDefault();
-            if (f == null) { f = new FileWithErrors(); }
+            FileWithErrors existing = context.FilesWithErrors.Where(fwe => fwe.FilePath == filepath).FirstOrDefault();
+            context.RemoveRange(existing);
+            FileWithErrors f = new FileWithErrors();
             f.FilePath = filepath;
             f.Notes = e.ToString() + "\n\n" + e.Message + "\n\n" + e.StackTrace;
             context.FilesWithErrors.Add(f);

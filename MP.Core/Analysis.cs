@@ -149,7 +149,7 @@ namespace MP.Core
 
         private async Task LogFileWithError(Exception e, String filepath)
         {
-            FileWithErrors existing = context.FilesWithErrors.Where(fwe => fwe.FilePath == filepath).FirstOrDefault();
+            var existing = context.FilesWithErrors.Where(fwe => fwe.FilePath == filepath).ToList();
             context.RemoveRange(existing);
             FileWithErrors f = new FileWithErrors();
             f.FilePath = filepath;

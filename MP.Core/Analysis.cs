@@ -76,11 +76,14 @@ namespace MP.Core
                 {
                     context.RemoveRange(oldAnalysis);
                     await context.SaveChangesAsync();
-                    MediaFile mediaFile = AnalyzeFile(content_type, fileInfo);
+                    MediaFile mediaFile = await AnalyzeFile(content_type, fileInfo);
 
-                    context.MediaFiles.Add(mediaFile);
-                    await context.SaveChangesAsync();
-                    Console.Out.WriteLine($"[Added] {filename}");
+                    if (mediaFile != null)
+                    {
+                        context.MediaFiles.Add(mediaFile);
+                        await context.SaveChangesAsync();
+                        Console.Out.WriteLine($"[Added] {filename}");
+                    }
                 }
             }
             catch (System.NullReferenceException e) { await LogFileWithError(e, filename); }
@@ -89,7 +92,7 @@ namespace MP.Core
             catch (Microsoft.EntityFrameworkCore.DbUpdateException e) { await LogFileWithError(e, filename); }
         }
 
-        public MediaFile AnalyzeFile(string content_type, FileInfo fileInfo)
+        public async Task<MediaFile> AnalyzeFile(string content_type, FileInfo fileInfo)
         {
             try
             {
@@ -145,10 +148,10 @@ namespace MP.Core
 
                 return mediaFile;
             }
-            catch (System.NullReferenceException e) { LogFileWithError(e, fileInfo.FullName); }
-            catch (System.InvalidOperationException e) { LogFileWithError(e, fileInfo.FullName); }
-            catch (System.DivideByZeroException e) { LogFileWithError(e, fileInfo.FullName); }
-            catch (Microsoft.EntityFrameworkCore.DbUpdateException e) { LogFileWithError(e, fileInfo.FullName); }
+            catch (System.NullReferenceException e) { await LogFileWithError(e, fileInfo.FullName); }
+            catch (System.InvalidOperationException e) { await LogFileWithError(e, fileInfo.FullName); }
+            catch (System.DivideByZeroException e) { await LogFileWithError(e, fileInfo.FullName); }
+            catch (Microsoft.EntityFrameworkCore.DbUpdateException e) { await LogFileWithError(e, fileInfo.FullName); }
             return null;
         }
 

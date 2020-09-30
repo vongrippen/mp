@@ -7,6 +7,7 @@ using System.CommandLine.Invocation;
 using MP.Core;
 using MP.Core.Context;
 using Microsoft.EntityFrameworkCore;
+using MP.Core.Npgsql.Migrations;
 
 namespace MP.Cli
 {
@@ -28,6 +29,7 @@ namespace MP.Cli
 
             Analysis analysis = new Analysis(_context, _config);
             Cleanup cleanup = new Cleanup(_context);
+            Converter converter = new Converter(_context, _config);
 
             var rootCommand = new RootCommand();
             var analyzeCommand = new Command("analyze");
@@ -36,6 +38,13 @@ namespace MP.Cli
             cmdAnalyzeFile.AddOption(new Option<string>("--filename"));
             cmdAnalyzeFile.AddOption(new Option<string>("--content_type"));
             cmdAnalyzeFile.Handler = CommandHandler.Create<string, string>(analysis.ProcessFile);
+
+            var cmdConvert = new Command("convert");
+            var cmdConvertFile = new Command("file");
+            cmdConvertFile.AddOption(new Option<string>("--filename"));
+            cmdConvertFile.AddOption(new Option<string>("--content_type"));
+            cmdConvertFile.Handler = CommandHandler.Create<string, string>(converter.ProcessFile);
+            cmdConvert.Add(cmdConvertFile);
 
             var cmdAnalyzeDir = new Command("dir");
             cmdAnalyzeDir.AddOption(new Option<string>("--path"));
@@ -56,6 +65,7 @@ namespace MP.Cli
 
             rootCommand.Add(analyzeCommand);
             rootCommand.Add(cmdConfig);
+            rootCommand.Add(cmdConvert);
 
             rootCommand.InvokeAsync(args).Wait();
         }

@@ -50,6 +50,10 @@ namespace MP.Core
         }
         public async Task ProcessFile(string filename, string content_type)
         {
+            await ProcessFile(filename, content_type, null);
+        }
+        public async Task ProcessFile(string filename, string content_type, string? processed_format)
+        {
             var fileInfo = new FileInfo(filename);
             var filenameRegexString = config[$"MP:FilenameRegex:{content_type}"];
             List<String> ignoreRegex = config.GetSection("MP:Ignore").Get<List<String>>();
@@ -77,6 +81,7 @@ namespace MP.Core
                     context.RemoveRange(oldAnalysis);
                     await context.SaveChangesAsync();
                     MediaFile mediaFile = await AnalyzeFile(content_type, fileInfo);
+                    mediaFile.ProcessedFormat = processed_format;
 
                     if (mediaFile != null)
                     {

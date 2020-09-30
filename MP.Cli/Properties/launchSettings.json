@@ -6,7 +6,7 @@
     },
     "Docker": {
       "commandName": "Docker",
-      "commandLineArgs": "cfg analyze"
+      "commandLineArgs": "convert file --filename=\"/zmedia/plex/tv/Exosquad/Season 2/Exosquad - S02E30 - The Perfect Warrior SDTV.m4v\" --content_type=\"tv\""
     }
   }
 }

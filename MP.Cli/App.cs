@@ -45,6 +45,9 @@ namespace MP.Cli
             cmdConvertFile.AddOption(new Option<string>("--content_type"));
             cmdConvertFile.Handler = CommandHandler.Create<string, string>(converter.ProcessFile);
             cmdConvert.Add(cmdConvertFile);
+            var cmdConvertDB = new Command("db");
+            cmdConvertDB.Handler = CommandHandler.Create(converter.ProcessDB);
+            cmdConvert.Add(cmdConvertDB);
 
             var cmdAnalyzeDir = new Command("dir");
             cmdAnalyzeDir.AddOption(new Option<string>("--path"));

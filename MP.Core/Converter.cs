@@ -22,6 +22,23 @@ namespace MP.Core
             config = cfg;
             analyzer = new MP.Core.Analysis(context, config);
         }
+        public async Task ProcessDB()
+        {
+            string targetFormat = config["MP:Conversion:ProfileName"];
+            while (true)
+            {
+                MediaFile currentFile = context.MediaFiles
+                    .Where(m => m.ProcessedFormat == targetFormat)
+                    .OrderByDescending(m => m.BytesPerSecondPerPixel)
+                    .First();
+                await ProcessFile(currentFile);
+            }
+        }
+        public async Task ProcessFile(MediaFile file)
+        {
+            string fullpath = Path.Join(file.FilePath, file.FileName);
+            await ProcessFile(fullpath, file.ContentType);
+        }
         public async Task ProcessFile(string filename, string content_type)
         {
             string tempPath = (config["MP:Conversion:TempDir"] ?? Path.GetTempPath());

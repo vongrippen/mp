@@ -28,7 +28,7 @@ namespace MP.Core
             while (true)
             {
                 MediaFile currentFile = context.MediaFiles
-                    .Where(m => m.ProcessedFormat == targetFormat)
+                    .Where(m => m.ProcessedFormat != targetFormat)
                     .OrderByDescending(m => m.BytesPerSecondPerPixel)
                     .First();
                 await ProcessFile(currentFile);

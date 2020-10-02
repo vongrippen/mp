@@ -6,7 +6,7 @@
     },
     "Docker": {
       "commandName": "Docker",
-      "commandLineArgs": "convert db"
+      "commandLineArgs": "convert singledb"
     }
   }
 }

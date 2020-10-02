@@ -24,14 +24,28 @@ namespace MP.Core
         }
         public async Task ProcessDB()
         {
-            string targetFormat = config["MP:Conversion:ProfileName"];
             while (true)
             {
-                MediaFile currentFile = context.MediaFiles
+                await ProcessSingleDB();
+            }
+        }
+        public async Task ProcessSingleDB()
+        {
+            string targetFormat = config["MP:Conversion:ProfileName"];
+            MediaFile currentFile = context.MediaFiles
                     .Where(m => m.ProcessedFormat != targetFormat)
                     .OrderByDescending(m => m.BytesPerSecondPerPixel)
                     .First();
+            Console.Out.WriteLine($"[Processing] \"{currentFile.FileName}\"");
+            try
+            {
                 await ProcessFile(currentFile);
+                Console.Out.WriteLine($"[Finished] \"{currentFile.FileName}\"");
+            } catch (System.IO.FileNotFoundException e)
+            {
+                Console.Out.WriteLine($"[Error] File not found, removing: \"{currentFile.FileName}\"");
+                context.RemoveRange(currentFile);
+                await context.SaveChangesAsync();
             }
         }
         public async Task ProcessFile(MediaFile file)
@@ -169,10 +183,8 @@ namespace MP.Core
 
         private void cleanupFiles(params string[] filenames)
         {
-            Console.Out.WriteLine("=== cleanupFiles ===");
             foreach (string file in filenames)
             {
-                Console.Out.WriteLine(file);
                 File.Delete(file);
             }
         }

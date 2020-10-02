@@ -48,6 +48,9 @@ namespace MP.Cli
             var cmdConvertDB = new Command("db");
             cmdConvertDB.Handler = CommandHandler.Create(converter.ProcessDB);
             cmdConvert.Add(cmdConvertDB);
+            var cmdConvertSingleDB = new Command("singledb");
+            cmdConvertSingleDB.Handler = CommandHandler.Create(converter.ProcessSingleDB);
+            cmdConvert.Add(cmdConvertSingleDB);
 
             var cmdAnalyzeDir = new Command("dir");
             cmdAnalyzeDir.AddOption(new Option<string>("--path"));

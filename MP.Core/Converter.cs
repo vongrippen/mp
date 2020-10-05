@@ -88,12 +88,13 @@ namespace MP.Core
             Handbrake.Configuration hbConfig = getHandbrakeConfig();
             HandbrakeCliWrapper.Handbrake conv = new HandbrakeCliWrapper.Handbrake(config["MP:Conversion:HandBrakeCLIPath"]);
             conv.Transcode(hbConfig, tmpSourceFullname, tempPath, tmpDestName, true);
+            Thread.Sleep(5 * 1000);
             while (conv.Status.Converting)
             {
                 if (dbRecord != null)
                 {
                     dbRecord.LastProcessingUpdate = DateTime.UtcNow;
-                    context.Add(dbRecord);
+                    context.UpdateRange(dbRecord);
                     await context.SaveChangesAsync();
                 }
 

@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Threading;
 using HandbrakeCliWrapper;
 
 namespace MP.Core
@@ -34,6 +35,7 @@ namespace MP.Core
             string targetFormat = config["MP:Conversion:ProfileName"];
             MediaFile currentFile = context.MediaFiles
                     .Where(m => m.ProcessedFormat != targetFormat)
+                    .Where(m => m.LastProcessingUpdate <= DateTime.UtcNow.AddHours(-1))
                     .OrderByDescending(m => m.BytesPerSecondPerPixel)
                     .First();
             Console.Out.WriteLine($"[Processing] \"{currentFile.FileName}\"");
@@ -51,9 +53,13 @@ namespace MP.Core
         public async Task ProcessFile(MediaFile file)
         {
             string fullpath = Path.Join(file.FilePath, file.FileName);
-            await ProcessFile(fullpath, file.ContentType);
+            await ProcessFile(fullpath, file.ContentType, file);
         }
         public async Task ProcessFile(string filename, string content_type)
+        {
+            await ProcessFile(filename, content_type, null);
+        }
+        public async Task ProcessFile(string filename, string content_type, MediaFile? dbRecord)
         {
             string tempPath = (config["MP:Conversion:TempDir"] ?? Path.GetTempPath());
             string fileExtension = (config["MP:Conversion:FileExtension"] ?? "mp4");
@@ -80,7 +86,19 @@ namespace MP.Core
 
             // Transcode file locally
             Handbrake.Configuration hbConfig = getHandbrakeConfig();
-            await transcodeFile(tmpSourceFullname, tempPath, tmpDestName, hbConfig);
+            HandbrakeCliWrapper.Handbrake conv = new HandbrakeCliWrapper.Handbrake(config["MP:Conversion:HandBrakeCLIPath"]);
+            conv.Transcode(hbConfig, tmpSourceFullname, tempPath, tmpDestName, true);
+            while (conv.Status.Converting)
+            {
+                if (dbRecord != null)
+                {
+                    dbRecord.LastProcessingUpdate = DateTime.UtcNow;
+                    context.Add(dbRecord);
+                    await context.SaveChangesAsync();
+                }
+
+                Thread.Sleep(5 * 1000);
+            }
 
             // Run local file analysis against temp file
             FileInfo tmpDestFileInfo = new FileInfo(tmpDestFullname);
@@ -123,13 +141,6 @@ namespace MP.Core
 
             return hbConfig;
         }
-
-        private async Task transcodeFile(string source, string destDir, string filename, Handbrake.Configuration hbConfig)
-        {
-            HandbrakeCliWrapper.Handbrake conv = new HandbrakeCliWrapper.Handbrake(config["MP:Conversion:HandBrakeCLIPath"]);
-            await conv.Transcode(hbConfig, source, destDir, filename, true);
-        }
-
         private async Task<bool> copyWithMediaVerification(string source, MediaFile sourceMedia, string dest)
         {
             string destPath = Path.GetDirectoryName(dest);

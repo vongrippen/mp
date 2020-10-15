@@ -33,11 +33,24 @@ namespace MP.Core
         public async Task ProcessSingleDB()
         {
             string targetFormat = config["MP:Conversion:ProfileName"];
-            MediaFile currentFile = context.MediaFiles
+            var mfQuery = context.MediaFiles
                     .Where(m => m.ProcessedFormat != targetFormat)
-                    .Where(m => m.LastProcessingUpdate <= DateTime.UtcNow.AddHours(-1))
-                    .OrderByDescending(m => m.BytesPerSecondPerPixel)
-                    .First();
+                    .Where(m => m.LastProcessingUpdate <= DateTime.UtcNow.AddHours(-1));
+            string sortOrder = config["MP:Conversion:SortOrder"];
+            sortOrder ??= "pixel";
+            switch (sortOrder)
+            {
+                case "pixel":
+                    mfQuery = mfQuery.OrderByDescending(m => m.BytesPerSecondPerPixel);
+                    break;
+                case "frame":
+                    mfQuery = mfQuery.OrderByDescending(m => m.BytesPerSecond);
+                    break;
+                default:
+                    throw new System.Exception($"Unsupported MP:Conversion:SortOrder \"{sortOrder}\"");
+            }
+
+            MediaFile currentFile = mfQuery.First();
             Console.Out.WriteLine($"[Processing] \"{currentFile.FileName}\"");
             try
             {

@@ -9,6 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Threading;
 using HandbrakeCliWrapper;
+using System.ComponentModel;
 
 namespace MP.Core
 {
@@ -102,13 +103,24 @@ namespace MP.Core
             HandbrakeCliWrapper.Handbrake conv = new HandbrakeCliWrapper.Handbrake(config["MP:Conversion:HandBrakeCLIPath"]);
             conv.Transcode(hbConfig, tmpSourceFullname, tempPath, tmpDestName, true);
             Thread.Sleep(5 * 1000);
+            DateTime lastStatusUpdate = DateTime.UtcNow;
             while (conv.Status.Converting)
             {
                 if (dbRecord != null)
                 {
-                    dbRecord.LastProcessingUpdate = DateTime.UtcNow;
-                    context.UpdateRange(dbRecord);
-                    await context.SaveChangesAsync();
+                    try
+                    {
+                        dbRecord.LastProcessingUpdate = DateTime.UtcNow;
+                        context.UpdateRange(dbRecord);
+                        await context.SaveChangesAsync();
+                        lastStatusUpdate = dbRecord.LastProcessingUpdate;
+                    } catch {
+                        var timeDifference = DateTime.UtcNow.Subtract(lastStatusUpdate);
+                        if (timeDifference.Minutes > 30)
+                        {
+                            throw new System.Exception("Error updating database within a reasonable timespan (30 minutes)");
+                        }
+                    }
                 }
 
                 Thread.Sleep(5 * 1000);

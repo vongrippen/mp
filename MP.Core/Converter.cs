@@ -75,6 +75,14 @@ namespace MP.Core
         }
         public async Task ProcessFile(string filename, string content_type, MediaFile? dbRecord)
         {
+            // Mark file as being processed so no other instances grab it
+            if (dbRecord != null)
+            {
+                dbRecord.LastProcessingUpdate = DateTime.UtcNow;
+                context.UpdateRange(dbRecord);
+                await context.SaveChangesAsync();
+            }
+
             string tempPath = (config["MP:Conversion:TempDir"] ?? Path.GetTempPath());
             string fileExtension = (config["MP:Conversion:FileExtension"] ?? "mp4");
 

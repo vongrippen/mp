@@ -75,97 +75,109 @@ namespace MP.Core
         }
         public async Task ProcessFile(string filename, string content_type, MediaFile? dbRecord)
         {
-            // Mark file as being processed so no other instances grab it
-            if (dbRecord != null)
+            List<string> filesToCleanup = new List<string>();
+            try
             {
-                dbRecord.LastProcessingUpdate = DateTime.UtcNow;
-                context.UpdateRange(dbRecord);
-                await context.SaveChangesAsync();
-            }
-
-            string tempPath = (config["MP:Conversion:TempDir"] ?? Path.GetTempPath());
-            string fileExtension = (config["MP:Conversion:FileExtension"] ?? "mp4");
-
-            FileInfo existingFileInfo = new FileInfo(filename);
-
-            string tmpSourceName = "src-" + existingFileInfo.Name;
-            string tmpSourceFullname = Path.Join(tempPath, tmpSourceName);
-
-            string tmpDestName = "dest-" + Path.GetFileNameWithoutExtension(existingFileInfo.Name) + "." + fileExtension;
-            string tmpDestFullname = Path.Join(tempPath, tmpDestName);
-
-            string finalName = Path.GetFileNameWithoutExtension(existingFileInfo.Name) + "." + fileExtension;
-            string finalFullname = Path.Join(existingFileInfo.DirectoryName, finalName);
-
-            cleanupFiles(tmpSourceFullname, tmpDestFullname);
-
-            // Copy file to local temp dir
-            File.Copy(filename, tmpSourceFullname);
-
-            // Run local file analysis
-            FileInfo tmpSourceFileInfo = new FileInfo(tmpSourceFullname);
-            MediaFile tmpSourceAnalysis = await analyzer.AnalyzeFile(content_type, tmpSourceFileInfo);
-
-            // Transcode file locally
-            Handbrake.Configuration hbConfig = getHandbrakeConfig();
-            HandbrakeCliWrapper.Handbrake conv = new HandbrakeCliWrapper.Handbrake(config["MP:Conversion:HandBrakeCLIPath"]);
-            conv.Transcode(hbConfig, tmpSourceFullname, tempPath, tmpDestName, true);
-            Thread.Sleep(5 * 1000);
-            DateTime lastStatusUpdate = DateTime.UtcNow;
-            while (conv.Status.Converting)
-            {
+                // Mark file as being processed so no other instances grab it
                 if (dbRecord != null)
                 {
-                    try
-                    {
-                        dbRecord.LastProcessingUpdate = DateTime.UtcNow;
-                        context.UpdateRange(dbRecord);
-                        await context.SaveChangesAsync();
-                        lastStatusUpdate = dbRecord.LastProcessingUpdate;
-                    } catch {
-                        var timeDifference = DateTime.UtcNow.Subtract(lastStatusUpdate);
-                        if (timeDifference.Minutes > 30)
-                        {
-                            throw new System.Exception("Error updating database within a reasonable timespan (30 minutes)");
-                        }
-                    }
+                    dbRecord.LastProcessingUpdate = DateTime.UtcNow;
+                    context.UpdateRange(dbRecord);
+                    await context.SaveChangesAsync();
                 }
 
-                Thread.Sleep(5 * 1000);
-            }
+                string tempPath = (config["MP:Conversion:TempDir"] ?? Path.GetTempPath());
+                string fileExtension = (config["MP:Conversion:FileExtension"] ?? "mp4");
 
-            // Run local file analysis against temp file
-            FileInfo tmpDestFileInfo = new FileInfo(tmpDestFullname);
-            MediaFile tmpDestAnalysis = await analyzer.AnalyzeFile(content_type, tmpDestFileInfo);
+                FileInfo existingFileInfo = new FileInfo(filename);
 
-            // Verify
-            if (!verifyTranscodedFile(tmpSourceAnalysis, tmpDestAnalysis))
-            {
+                string tmpSourceName = "src-" + existingFileInfo.Name;
+                string tmpSourceFullname = Path.Join(tempPath, tmpSourceName);
+
+                string tmpDestName = "dest-" + Path.GetFileNameWithoutExtension(existingFileInfo.Name) + "." + fileExtension;
+                string tmpDestFullname = Path.Join(tempPath, tmpDestName);
+
+                string finalName = Path.GetFileNameWithoutExtension(existingFileInfo.Name) + "." + fileExtension;
+                string finalFullname = Path.Join(existingFileInfo.DirectoryName, finalName);
+
+                filesToCleanup.Add(tmpSourceFullname);
+                filesToCleanup.Add(tmpDestFullname);
+
                 cleanupFiles(tmpSourceFullname, tmpDestFullname);
-                Console.Out.WriteLine($"[Error] Verification failed for {tmpDestName}");
-                return;
-            }
 
-            // Copy file back and verify
-            if (! await copyWithMediaVerification(tmpDestFullname, tmpDestAnalysis, finalFullname))
+                // Copy file to local temp dir
+                File.Copy(filename, tmpSourceFullname);
+
+                // Run local file analysis
+                FileInfo tmpSourceFileInfo = new FileInfo(tmpSourceFullname);
+                MediaFile tmpSourceAnalysis = await analyzer.AnalyzeFile(content_type, tmpSourceFileInfo);
+
+                // Transcode file locally
+                Handbrake.Configuration hbConfig = getHandbrakeConfig();
+                HandbrakeCliWrapper.Handbrake conv = new HandbrakeCliWrapper.Handbrake(config["MP:Conversion:HandBrakeCLIPath"]);
+                conv.Transcode(hbConfig, tmpSourceFullname, tempPath, tmpDestName, true);
+                Thread.Sleep(5 * 1000);
+                DateTime lastStatusUpdate = DateTime.UtcNow;
+                while (conv.Status.Converting)
+                {
+                    if (dbRecord != null)
+                    {
+                        try
+                        {
+                            dbRecord.LastProcessingUpdate = DateTime.UtcNow;
+                            context.UpdateRange(dbRecord);
+                            await context.SaveChangesAsync();
+                            lastStatusUpdate = dbRecord.LastProcessingUpdate;
+                        }
+                        catch
+                        {
+                            var timeDifference = DateTime.UtcNow.Subtract(lastStatusUpdate);
+                            if (timeDifference.Minutes > 30)
+                            {
+                                throw new System.Exception("Error updating database within a reasonable timespan (30 minutes)");
+                            }
+                        }
+                    }
+
+                    Thread.Sleep(5 * 1000);
+                }
+
+                // Run local file analysis against temp file
+                FileInfo tmpDestFileInfo = new FileInfo(tmpDestFullname);
+                MediaFile tmpDestAnalysis = await analyzer.AnalyzeFile(content_type, tmpDestFileInfo);
+
+                // Verify
+                if (!verifyTranscodedFile(tmpSourceAnalysis, tmpDestAnalysis))
+                {
+                    cleanupFiles(tmpSourceFullname, tmpDestFullname);
+                    Console.Out.WriteLine($"[Error] Verification failed for {tmpDestName}");
+                    return;
+                }
+
+                // Copy file back and verify
+                if (!await copyWithMediaVerification(tmpDestFullname, tmpDestAnalysis, finalFullname))
+                {
+                    Console.Out.WriteLine($"[Error] Could not copy \"{tmpDestName}\" to \"{finalFullname}\"");
+                    cleanupFiles(tmpDestFullname);
+                    return;
+                }
+
+                // Delete extra files leftover
+                cleanupFiles(tmpDestFullname, tmpSourceFullname);
+                if (finalFullname != filename)
+                {
+                    cleanupFiles(filename);
+                }
+
+                // Cleanup any existing database records
+                await cleanupDB(filename, finalFullname);
+
+                // Process file back into the database
+                await analyzer.ProcessFile(finalFullname, content_type, hbConfig.Profile);
+            } finally
             {
-                Console.Out.WriteLine($"[Error] Could not copy \"{tmpDestName}\" to \"{finalFullname}\"");
-                cleanupFiles(tmpDestFullname);
-                return;
+                cleanupFiles(filesToCleanup.ToArray());
             }
-
-            // Delete extra files leftover
-            cleanupFiles(tmpDestFullname, tmpSourceFullname);
-            if (finalFullname != filename)
-            {
-                cleanupFiles(filename);
-            }
-
-            // Cleanup any existing database records
-            await cleanupDB(filename, finalFullname);
-
-            // Process file back into the database
-            await analyzer.ProcessFile(finalFullname, content_type, hbConfig.Profile);
         }
         private Handbrake.Configuration getHandbrakeConfig()
         {
